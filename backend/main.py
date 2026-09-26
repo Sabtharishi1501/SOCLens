@@ -3,7 +3,7 @@ FastAPI application for SOCLens.
 
 One real endpoint: POST /api/assess, which accepts an uploaded SOP file and
 runs it through the full pipeline (extract -> build prompt -> call LLM,
-Gemini first then Groq fallback -> validate + grounding-check the response).
+Groq first then Gemini fallback -> validate + grounding-check the response).
 
 Also serves the static frontend so the whole thing runs from one process:
 `uvicorn main:app --reload` and open http://localhost:8000
@@ -58,25 +58,33 @@ async def assess(file: UploadFile = File(...)):
         extraction["text"], truncated=extraction["truncated"]
     )
 
-    # Call the LLM and validate its response, with one full retry if the
-    # response comes back malformed (e.g. truncated mid-string). LLM output
-    # is occasionally flaky in a way a fresh generation usually resolves.
-    max_attempts = 2
+    # Call the LLM and validate its response, retrying on EITHER failure
+    # mode: both providers failing outright (LLMError), or a response that
+    # parses but is malformed/incomplete (ValidationError). Raised to 3
+    # attempts after observing multiple distinct failure modes stack up
+    # within a single request.
+    max_attempts = 3
+    last_error = None
+
     for attempt in range(1, max_attempts + 1):
         try:
             llm_result = llm_client.get_llm_response(prompt)
         except llm_client.LLMError as e:
-            raise HTTPException(
-                status_code=502,
-                detail=f"The assessment could not be completed: {e}",
-            )
+            print(f"[SOCLens] attempt {attempt}/{max_attempts} - both providers failed: {e}")
+            if attempt == max_attempts:
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"The assessment could not be completed: {e}",
+                )
+            continue  # try the whole thing again rather than giving up early
 
         try:
             results = validator.parse_llm_response(
                 llm_result["raw_text"], extraction["text"]
             )
-            break
+            break  # success
         except validator.ValidationError as e:
+            last_error = e
             print(
                 f"[SOCLens] attempt {attempt}/{max_attempts} failed validation: {e}\n"
                 f"[SOCLens] raw response was {len(llm_result['raw_text'])} chars: "
