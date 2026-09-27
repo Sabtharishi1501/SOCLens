@@ -17,13 +17,6 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 MAX_INPUT_CHARS = 12_000
-
-# Max tokens the LLM is allowed to generate. Raised from 1,200 to 2,048 to
-# 8,192: Gemini 3.x models include hidden "thinking" tokens in this same
-# budget (confirmed via finish_reason=MAX_TOKENS on responses cut off at
-# only ~70 visible tokens), and our installed SDK (google-generativeai
-# 0.8.3) predates the thinking_level parameter needed to disable that, so
-# the practical fix is enough headroom to survive it rather than prevent it.
 MAX_OUTPUT_TOKENS = 8_192
 
 MAX_EVIDENCE_CHARS = 220

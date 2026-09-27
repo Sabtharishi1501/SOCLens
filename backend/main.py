@@ -1,12 +1,5 @@
 """
 FastAPI application for SOCLens.
-
-One real endpoint: POST /api/assess, which accepts an uploaded SOP file and
-runs it through the full pipeline (extract -> build prompt -> call LLM,
-Groq first then Gemini fallback -> validate + grounding-check the response).
-
-Also serves the static frontend so the whole thing runs from one process:
-`uvicorn main:app --reload` and open http://localhost:8000
 """
 
 import os
@@ -58,11 +51,6 @@ async def assess(file: UploadFile = File(...)):
         extraction["text"], truncated=extraction["truncated"]
     )
 
-    # Call the LLM and validate its response, retrying on EITHER failure
-    # mode: both providers failing outright (LLMError), or a response that
-    # parses but is malformed/incomplete (ValidationError). Raised to 3
-    # attempts after observing multiple distinct failure modes stack up
-    # within a single request.
     max_attempts = 3
     last_error = None
 
@@ -76,13 +64,13 @@ async def assess(file: UploadFile = File(...)):
                     status_code=502,
                     detail=f"The assessment could not be completed: {e}",
                 )
-            continue  # try the whole thing again rather than giving up early
+            continue
 
         try:
             results = validator.parse_llm_response(
                 llm_result["raw_text"], extraction["text"]
             )
-            break  # success
+            break
         except validator.ValidationError as e:
             last_error = e
             print(

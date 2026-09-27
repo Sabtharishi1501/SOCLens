@@ -162,3 +162,4 @@ def get_llm_response(prompt: str) -> dict:
             raise LLMError(
                 f"Groq failed: {groq_error} | Gemini fallback also failed: {gemini_error}"
             )
+        

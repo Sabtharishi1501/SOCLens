@@ -76,7 +76,6 @@ def parse_llm_response(raw_text: str, source_text: str) -> list:
 def _parse_json(raw_text: str) -> dict:
     text = raw_text.strip()
 
-    # Models sometimes wrap JSON in markdown fences despite instructions not to.
     fence_match = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
     if fence_match:
         text = fence_match.group(1)

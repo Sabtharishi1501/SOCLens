@@ -87,8 +87,6 @@ def _extract_docx(file_bytes: bytes) -> str:
         doc = Document(io.BytesIO(file_bytes))
         paragraphs = [p.text for p in doc.paragraphs]
 
-        # Also pull text out of any tables, since SOPs sometimes put
-        # classification/escalation info in a table rather than prose.
         for table in doc.tables:
             for row in table.rows:
                 for cell in row.cells:
@@ -110,7 +108,6 @@ def _extract_txt(file_bytes: bytes) -> str:
 
 
 def _clean_text(text: str) -> str:
-    """Collapse excess whitespace/blank lines without altering wording."""
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
