@@ -117,6 +117,19 @@ function tierFor(score) {
   return "tier-high";
 }
 
+const MATURITY_LABELS = [
+  "Not Present",
+  "Initial",
+  "Defined",
+  "Managed",
+  "Measured",
+  "Optimized",
+];
+
+function maturityLabel(score) {
+  return MATURITY_LABELS[score] ?? "Unknown";
+}
+
 function renderResults(data) {
   loadingSection.hidden = true;
   resultsSection.hidden = false;
@@ -150,6 +163,7 @@ function renderResults(data) {
           <div class="finding-score">
             <span class="digit">${r.score}</span>
             <span class="out-of">/ 5</span>
+            <span class="maturity-label">${escapeHtml(maturityLabel(r.score))}</span>
           </div>
           <div class="finding-body">
             <h3>${escapeHtml(r.title)}</h3>

@@ -226,6 +226,19 @@ body {
 .tier-mid .digit { color: var(--tier-mid); }
 .tier-high .digit { color: var(--tier-high); }
 
+.finding-score .maturity-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  margin-top: 8px;
+  color: var(--text-secondary);
+}
+
+.tier-low .maturity-label { color: var(--tier-low); }
+.tier-mid .maturity-label { color: var(--tier-mid); }
+.tier-high .maturity-label { color: var(--tier-high); }
+
 .finding-body h3 {
   margin: 0 0 10px;
   font-size: 1.05rem;
